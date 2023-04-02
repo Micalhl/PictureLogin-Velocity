@@ -1,10 +1,11 @@
 package com.bobacadodl.imgmessage;
 
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.util.ChatPaginator;
+import com.bobacadodl.imgmessage.bukkit.ChatColor;
+import com.bobacadodl.imgmessage.bukkit.ChatPaginator;
+import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -132,7 +133,7 @@ public class ImageMessage {
 
     public void sendToPlayer(Player player) {
         for (String line : lines) {
-            player.sendMessage(line);
+            player.sendMessage(LegacyComponentSerializer.legacySection().deserialize(line));
         }
     }
 }

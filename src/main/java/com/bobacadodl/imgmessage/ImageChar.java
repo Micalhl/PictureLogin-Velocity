@@ -6,10 +6,10 @@ package com.bobacadodl.imgmessage;
  * Time: 11:03 PM
  */
 public enum ImageChar {
-    BLOCK('\u2588'),
-    DARK_SHADE('\u2593'),
-    MEDIUM_SHADE('\u2592'),
-    LIGHT_SHADE('\u2591');
+    BLOCK('█'),
+    DARK_SHADE('▓'),
+    MEDIUM_SHADE('▒'),
+    LIGHT_SHADE('░');
     private final char c;
 
     ImageChar(char c) {
