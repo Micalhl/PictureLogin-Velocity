@@ -40,35 +40,37 @@ public class PictureUtil {
     }
 
     private BufferedImage getImage(Player player) throws IOException {
+        try {
+            File file = new File(plugin.dataDirectory.toFile(), player.getUniqueId().toString());
 
-        File file = new File(plugin.dataDirectory.toFile(), player.getUniqueId().toString());
+            BufferedImage bufferedImage;
 
-        BufferedImage bufferedImage;
-
-        if (file.exists()) {
-            bufferedImage = ImageIO.read(file);
-            plugin.server.getScheduler().buildTask(plugin, () -> {
+            if (file.exists()) {
+                bufferedImage = ImageIO.read(file);
+                plugin.server.getScheduler().buildTask(plugin, () -> {
+                    try {
+                        var stream = getBufferedImageByApi(player);
+                        if (stream == null) return;
+                        ImageIO.write(stream, "png", file);
+                    } catch (IOException ignored) {
+                    }
+                }).schedule();
+            } else {
+                file.createNewFile();
+                bufferedImage = getBufferedImageByApi(player);
                 try {
-                    var stream = getBufferedImageByApi(player);
-                    if (stream == null) return;
-                    ImageIO.write(stream, "png", file);
+                    if (bufferedImage != null) {
+                        ImageIO.write(bufferedImage, "png", file);
+                    } else {
+                        bufferedImage = getFallback();
+                    }
                 } catch (IOException ignored) {
                 }
-            }).schedule();
-        } else {
-            file.createNewFile();
-            bufferedImage = getBufferedImageByApi(player);
-            try {
-                if (bufferedImage != null) {
-                    ImageIO.write(bufferedImage, "png", file);
-                } else {
-                    bufferedImage = getFallback();
-                }
-            } catch (IOException ignored) {
             }
+            return bufferedImage;
+        } catch (Exception ignored) {
+            return getFallback();
         }
-
-        return bufferedImage;
     }
 
     @Nullable
@@ -100,17 +102,17 @@ public class PictureUtil {
         int imageDimensions = 8, count = 0;
 
         ImageMessage imageMessage = new ImageMessage(image, imageDimensions, getChar());
-        String[] msg = new String[imageDimensions];
+        Component[] msg = new Component[imageDimensions];
 
         for (String message : messages) {
             if (count > msg.length) {
                 break;
             }
-            msg[count++] = message;
+            msg[count++] = MiniMessage.miniMessage().deserialize(message);
         }
 
         while (count < imageDimensions) {
-            msg[count++] = "";
+            msg[count++] = Component.empty();
         }
 
         return imageMessage.appendText(msg);

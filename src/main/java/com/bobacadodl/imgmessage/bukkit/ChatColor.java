@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
 public final class ChatColor {
     public static final char COLOR_CHAR = '§';
     public static final String ALL_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx";
-    public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + '§' + "[0-9A-FK-ORX]");
+    public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + String.valueOf('§') + "[0-9A-FK-ORX]");
+    private static final Map<Character, ChatColor> BY_CHAR = new HashMap();
+    private static final Map<String, ChatColor> BY_NAME = new HashMap();
     public static final ChatColor BLACK = new ChatColor('0', "black", new Color(0));
     public static final ChatColor DARK_BLUE = new ChatColor('1', "dark_blue", new Color(170));
     public static final ChatColor DARK_GREEN = new ChatColor('2', "dark_green", new Color(43520));
@@ -35,8 +37,6 @@ public final class ChatColor {
     public static final ChatColor UNDERLINE = new ChatColor('n', "underline");
     public static final ChatColor ITALIC = new ChatColor('o', "italic");
     public static final ChatColor RESET = new ChatColor('r', "reset");
-    private static final Map<Character, ChatColor> BY_CHAR = new HashMap();
-    private static final Map<String, ChatColor> BY_NAME = new HashMap();
     private static int count = 0;
     private final String toString;
     private final String name;
@@ -44,7 +44,7 @@ public final class ChatColor {
     private final Color color;
 
     private ChatColor(char code, String name) {
-        this(code, name, null);
+        this(code, name, (Color)null);
     }
 
     private ChatColor(char code, String name, Color color) {
@@ -63,6 +63,27 @@ public final class ChatColor {
         this.color = new Color(rgb);
     }
 
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.toString);
+        return hash;
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj != null && this.getClass() == obj.getClass()) {
+            ChatColor other = (ChatColor)obj;
+            return Objects.equals(this.toString, other.toString);
+        } else {
+            return false;
+        }
+    }
+
+    public String toString() {
+        return this.toString;
+    }
+
     public static String stripColor(String input) {
         return input == null ? null : STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
     }
@@ -70,7 +91,7 @@ public final class ChatColor {
     public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
 
-        for (int i = 0; i < b.length - 1; ++i) {
+        for(int i = 0; i < b.length - 1; ++i) {
             if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i + 1]) > -1) {
                 b[i] = 167;
                 b[i + 1] = Character.toLowerCase(b[i + 1]);
@@ -81,7 +102,7 @@ public final class ChatColor {
     }
 
     public static ChatColor getByChar(char code) {
-        return BY_CHAR.get(code);
+        return (ChatColor)BY_CHAR.get(code);
     }
 
     public static ChatColor of(Color color) {
@@ -102,14 +123,14 @@ public final class ChatColor {
             char[] var3 = string.substring(1).toCharArray();
             int var4 = var3.length;
 
-            for (int var5 = 0; var5 < var4; ++var5) {
+            for(int var5 = 0; var5 < var4; ++var5) {
                 char c = var3[var5];
                 magic.append('§').append(c);
             }
 
             return new ChatColor(string, magic.toString(), rgb);
         } else {
-            ChatColor defined = BY_NAME.get(string.toUpperCase(Locale.ROOT));
+            ChatColor defined = (ChatColor)BY_NAME.get(string.toUpperCase(Locale.ROOT));
             if (defined != null) {
                 return defined;
             } else {
@@ -118,57 +139,28 @@ public final class ChatColor {
         }
     }
 
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     @Deprecated
     public static ChatColor valueOf(String name) {
         Preconditions.checkNotNull(name, "Name is null");
-        ChatColor defined = BY_NAME.get(name);
+        ChatColor defined = (ChatColor)BY_NAME.get(name);
         Preconditions.checkArgument(defined != null, "No enum constant " + ChatColor.class.getName() + "." + name);
         return defined;
     }
 
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     @Deprecated
     public static ChatColor[] values() {
-        return BY_CHAR.values().toArray(new ChatColor[BY_CHAR.values().size()]);
+        return (ChatColor[])BY_CHAR.values().toArray(new ChatColor[BY_CHAR.values().size()]);
     }
 
-    public int hashCode() {
-        int hash = 7;
-        hash = 53 * hash + Objects.hashCode(this.toString);
-        return hash;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj != null && this.getClass() == obj.getClass()) {
-            ChatColor other = (ChatColor) obj;
-            return Objects.equals(this.toString, other.toString);
-        } else {
-            return false;
-        }
-    }
-
-    public String toString() {
-        return this.toString;
-    }
-
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     @Deprecated
     public String name() {
         return this.getName().toUpperCase(Locale.ROOT);
     }
 
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     @Deprecated
     public int ordinal() {
         Preconditions.checkArgument(this.ordinal >= 0, "Cannot get ordinal of hex color");

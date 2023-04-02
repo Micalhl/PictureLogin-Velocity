@@ -3,6 +3,8 @@ package com.bobacadodl.imgmessage;
 import com.bobacadodl.imgmessage.bukkit.ChatColor;
 import com.bobacadodl.imgmessage.bukkit.ChatPaginator;
 import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.awt.*;
@@ -18,37 +20,17 @@ import java.awt.image.BufferedImage;
 public class ImageMessage {
     private final static char TRANSPARENT_CHAR = ' ';
 
-    private String[] lines;
+    private Component[] lines;
 
     public ImageMessage(BufferedImage image, int height, char imgChar) {
         ChatColor[][] chatColors = toChatColorArray(image, height);
         lines = toImgMessage(chatColors, imgChar);
     }
 
-    public ImageMessage(ChatColor[][] chatColors, char imgChar) {
-        lines = toImgMessage(chatColors, imgChar);
-    }
-
-    public ImageMessage(String... imgLines) {
-        lines = imgLines;
-    }
-
-    public ImageMessage appendText(String... text) {
+    public ImageMessage appendText(Component... text) {
         for (int y = 0; y < lines.length; y++) {
             if (text.length > y) {
-                lines[y] += " " + text[y];
-            }
-        }
-        return this;
-    }
-
-    public ImageMessage appendCenteredText(String... text) {
-        for (int y = 0; y < lines.length; y++) {
-            if (text.length > y) {
-                int len = ChatPaginator.AVERAGE_CHAT_PAGE_WIDTH - lines[y].length();
-                lines[y] = lines[y] + center(text[y], len);
-            } else {
-                return this;
+                lines[y] = lines[y].append(Component.text(" ")).append(text[y]);
             }
         }
         return this;
@@ -71,15 +53,15 @@ public class ImageMessage {
         return chatImg;
     }
 
-    private String[] toImgMessage(ChatColor[][] colors, char imgchar) {
-        lines = new String[colors[0].length];
+    private Component[] toImgMessage(ChatColor[][] colors, char imgchar) {
+        lines = new Component[colors[0].length];
         for (int y = 0; y < colors[0].length; y++) {
             StringBuilder line = new StringBuilder();
             for (ChatColor[] chatColors : colors) {
                 ChatColor color = chatColors[y];
                 line.append((color != null) ? chatColors[y].toString() + imgchar : TRANSPARENT_CHAR);
             }
-            lines[y] = line.toString() + ChatColor.RESET;
+            lines[y] = LegacyComponentSerializer.legacySection().deserialize(line.toString() + ChatColor.RESET);
         }
         return lines;
     }
@@ -127,13 +109,13 @@ public class ImageMessage {
         }
     }
 
-    public String[] getLines() {
+    public Component[] getLines() {
         return lines;
     }
 
     public void sendToPlayer(Player player) {
-        for (String line : lines) {
-            player.sendMessage(LegacyComponentSerializer.legacySection().deserialize(line));
+        for (Component line : lines) {
+            player.sendMessage(line);
         }
     }
 }
