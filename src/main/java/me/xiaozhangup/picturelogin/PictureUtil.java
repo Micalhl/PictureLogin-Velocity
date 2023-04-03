@@ -39,9 +39,10 @@ public class PictureUtil {
         }
     }
 
+    @NotNull
     private BufferedImage getImage(Player player) throws IOException {
         try {
-            File file = new File(plugin.dataDirectory.toFile(), player.getUniqueId().toString());
+            File file = new File(plugin.dataDirectory + "/image", player.getUniqueId().toString());
 
             BufferedImage bufferedImage;
 
@@ -56,10 +57,10 @@ public class PictureUtil {
                     }
                 }).schedule();
             } else {
-                file.createNewFile();
                 bufferedImage = getBufferedImageByApi(player);
                 try {
                     if (bufferedImage != null) {
+                        file.createNewFile();
                         ImageIO.write(bufferedImage, "png", file);
                     } else {
                         bufferedImage = getFallback();
@@ -67,7 +68,11 @@ public class PictureUtil {
                 } catch (IOException ignored) {
                 }
             }
-            return bufferedImage;
+            if (bufferedImage == null) {
+                return getFallback();
+            } else {
+                return bufferedImage;
+            }
         } catch (Exception ignored) {
             return getFallback();
         }
@@ -129,17 +134,13 @@ public class PictureUtil {
     public ImageMessage createPictureMessage(Player player, List<String> messages) throws IOException {
         BufferedImage image = getImage(player);
 
-        if (image == null) {
-            return null;
-        }
-
         return getMessage(messages, image);
     }
 
     public void sendImage(Player player) {
         PictureWrapper wrapper = new PictureWrapper(player);
 
-        plugin.server.getScheduler().buildTask(plugin, wrapper).delay(1L, TimeUnit.SECONDS).schedule();
+        plugin.server.getScheduler().buildTask(plugin, wrapper).schedule();
     }
 
 }

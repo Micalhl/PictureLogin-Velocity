@@ -3,6 +3,7 @@ package me.xiaozhangup.picturelogin;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -39,6 +40,11 @@ public class PictureLogin {
 
         try {
             var f = new File(dataDirectory.toFile(), "config.yml");
+            var image = new File(dataDirectory.toFile() + "/image");
+            if (!image.exists()) {
+                image.mkdirs();
+            }
+
             createConfig(f);
             var stream = new FileInputStream(f);
             message = yaml.load(stream);
@@ -51,8 +57,10 @@ public class PictureLogin {
     }
 
     @Subscribe
-    public void on(LoginEvent event) {
-        pictureUtil.sendImage(event.getPlayer());
+    public void on(ServerConnectedEvent event) {
+        if (event.getPreviousServer().isEmpty()) {
+            pictureUtil.sendImage(event.getPlayer());
+        }
     }
 
     private void createConfig(File f) throws IOException {
