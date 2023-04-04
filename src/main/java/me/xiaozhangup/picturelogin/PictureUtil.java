@@ -22,7 +22,7 @@ import static me.xiaozhangup.picturelogin.PictureLogin.plugin;
 public class PictureUtil {
 
     public static final @NotNull Component clear = MiniMessage.miniMessage().deserialize("<newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline>");
-    public static final InputStream FALLBACK = PictureLogin.class.getResourceAsStream("/fall.png");
+    public static final InputStream FALLBACK = PictureLogin.class.getResourceAsStream("/fallback.png");
 
     public PictureUtil() {
     }
