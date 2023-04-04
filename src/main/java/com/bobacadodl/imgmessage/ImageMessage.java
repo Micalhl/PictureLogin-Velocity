@@ -1,10 +1,8 @@
 package com.bobacadodl.imgmessage;
 
 import com.bobacadodl.imgmessage.bukkit.ChatColor;
-import com.bobacadodl.imgmessage.bukkit.ChatPaginator;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.awt.*;

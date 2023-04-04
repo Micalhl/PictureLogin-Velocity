@@ -12,23 +12,23 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static me.xiaozhangup.picturelogin.PictureLogin.plugin;
 
 public class PictureUtil {
 
     public static final @NotNull Component clear = MiniMessage.miniMessage().deserialize("<newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline><newline>");
+    public static final InputStream FALLBACK = PictureLogin.class.getResourceAsStream("/fall.png");
 
     public PictureUtil() {
     }
 
     private URL newURL(String player_uuid, String player_name) {
-        String url = null;
-        url = PictureLogin.api
+        String url = PictureLogin.api
                 .replace("%uuid%", player_uuid)
                 .replace("%name%", player_name);
         try {
@@ -43,36 +43,29 @@ public class PictureUtil {
     private BufferedImage getImage(Player player) throws IOException {
         try {
             File file = new File(plugin.dataDirectory + "/image", player.getUniqueId().toString());
-
             BufferedImage bufferedImage;
 
             if (file.exists()) {
                 bufferedImage = ImageIO.read(file);
                 plugin.server.getScheduler().buildTask(plugin, () -> {
+                    var stream = getBufferedImageByApi(player);
+                    if (stream == null) return;
                     try {
-                        var stream = getBufferedImageByApi(player);
-                        if (stream == null) return;
                         ImageIO.write(stream, "png", file);
                     } catch (IOException ignored) {
                     }
                 }).schedule();
             } else {
                 bufferedImage = getBufferedImageByApi(player);
-                try {
-                    if (bufferedImage != null) {
-                        file.createNewFile();
-                        ImageIO.write(bufferedImage, "png", file);
-                    } else {
-                        bufferedImage = getFallback();
-                    }
-                } catch (IOException ignored) {
+                if (bufferedImage != null) {
+                    file.createNewFile();
+                    ImageIO.write(bufferedImage, "png", file);
+                } else {
+                    bufferedImage = getFallback();
                 }
             }
-            if (bufferedImage == null) {
-                return getFallback();
-            } else {
-                return bufferedImage;
-            }
+            if (bufferedImage == null) return getFallback();
+            return bufferedImage;
         } catch (Exception ignored) {
             return getFallback();
         }
@@ -100,10 +93,11 @@ public class PictureUtil {
     }
 
     public BufferedImage getFallback() throws IOException {
-        return ImageIO.read(PictureLogin.class.getResourceAsStream("/fallback.png"));
+        assert FALLBACK != null;
+        return ImageIO.read(FALLBACK);
     }
 
-    public ImageMessage getMessage(List<String> messages, BufferedImage image) {
+    public ImageMessage getMessage(List<String> messages, BufferedImage image, Player player) {
         int imageDimensions = 8, count = 0;
 
         ImageMessage imageMessage = new ImageMessage(image, imageDimensions, getChar());
@@ -113,7 +107,11 @@ public class PictureUtil {
             if (count > msg.length) {
                 break;
             }
-            msg[count++] = MiniMessage.miniMessage().deserialize(message);
+            msg[count++] = MiniMessage.miniMessage().deserialize(
+                    message
+                            .replace("%player_name%", player.getUsername())
+                    //.replace("%placeholder%", null)
+            );
         }
 
         while (count < imageDimensions) {
@@ -134,7 +132,7 @@ public class PictureUtil {
     public ImageMessage createPictureMessage(Player player, List<String> messages) throws IOException {
         BufferedImage image = getImage(player);
 
-        return getMessage(messages, image);
+        return getMessage(messages, image, player);
     }
 
     public void sendImage(Player player) {
